@@ -220,17 +220,6 @@ summarizer backend, and the model cache.
 
 ---
 
-## Project layout
+## License
 
-```
-cmd/vid-summary-cli/    cobra commands (root/run, models, doctor, version)
-internal/
-├── config/             home dir, config load/create, defaults
-├── deps/               dependency detection + OS-aware install hints
-├── extract/            url detection, yt-dlp acquire, ffmpeg normalize
-├── model/              model registry, download, verify, cache
-├── proc/               shared external-process runner
-├── summarize/          backend interface, claude/codex backends, map-reduce, chunking
-├── transcribe/         whisper-cli wrapper + JSON parsing
-└── pipeline/           stage orchestration, temp lifecycle, output rendering
-```
+MIT — see [LICENSE](LICENSE).
