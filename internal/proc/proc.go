@@ -14,11 +14,12 @@ import (
 )
 
 type RunOpts struct {
-	Name         string    // executable name or path
-	Args         []string  //
-	Stdin        io.Reader // nil -> child stdin is /dev/null
-	StreamStderr bool      // also mirror child stderr to our stderr (verbose mode)
-	Label        string    // prefix for wrapped errors; defaults to Name
+	Name         string       // executable name or path
+	Args         []string     //
+	Stdin        io.Reader    // nil -> child stdin is /dev/null
+	StreamStderr bool         // also mirror child stderr to our stderr (verbose mode)
+	OnStderrLine func(string) // optional callback per complete stderr line
+	Label        string       // prefix for wrapped errors; defaults to Name
 }
 
 type Result struct {
@@ -34,11 +35,15 @@ func Run(ctx context.Context, o RunOpts) (Result, error) {
 
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
+
+	writers := []io.Writer{&stderr}
 	if o.StreamStderr {
-		cmd.Stderr = io.MultiWriter(&stderr, os.Stderr)
-	} else {
-		cmd.Stderr = &stderr
+		writers = append(writers, os.Stderr)
 	}
+	if o.OnStderrLine != nil {
+		writers = append(writers, &lineWriter{onLine: o.OnStderrLine})
+	}
+	cmd.Stderr = io.MultiWriter(writers...)
 
 	err := cmd.Run()
 	res := Result{Stdout: stdout.String(), Stderr: stderr.String()}
@@ -50,6 +55,26 @@ func Run(ctx context.Context, o RunOpts) (Result, error) {
 		return res, fmt.Errorf("%s: %w\n%s", label, err, Tail(res.Stderr, 10))
 	}
 	return res, nil
+}
+
+// lineWriter calls onLine for each complete newline-terminated line written,
+// buffering any trailing partial line.
+type lineWriter struct {
+	buf    []byte
+	onLine func(string)
+}
+
+func (w *lineWriter) Write(p []byte) (int, error) {
+	w.buf = append(w.buf, p...)
+	for {
+		i := bytes.IndexByte(w.buf, '\n')
+		if i < 0 {
+			break
+		}
+		w.onLine(string(w.buf[:i]))
+		w.buf = w.buf[i+1:]
+	}
+	return len(p), nil
 }
 
 // Tail returns the last n non-empty-trimmed lines of s.

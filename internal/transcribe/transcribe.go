@@ -49,7 +49,7 @@ type whisperJSON struct {
 // Run transcribes a 16 kHz mono WAV with whisper-cli and parses the JSON output.
 func Run(ctx context.Context, bin, wav, tmpDir string, opts Options) (Result, error) {
 	outBase := filepath.Join(tmpDir, "transcript")
-	args := []string{"-m", opts.ModelPath, "-f", wav, "-oj", "-of", outBase}
+	args := []string{"-m", opts.ModelPath, "-f", wav, "-oj", "-of", outBase, "-pp"}
 	if opts.Language != "" {
 		args = append(args, "-l", opts.Language)
 	}
@@ -60,7 +60,23 @@ func Run(ctx context.Context, bin, wav, tmpDir string, opts Options) (Result, er
 		args = append(args, "-bs", strconv.Itoa(opts.BeamSize), "-bo", strconv.Itoa(opts.BeamSize))
 	}
 
-	if _, err := proc.Run(ctx, proc.RunOpts{Name: bin, Args: args, StreamStderr: opts.Verbose, Label: "whisper-cli"}); err != nil {
+	// In non-verbose mode, surface just the transcription percentage; verbose
+	// mode streams the full whisper-cli stderr instead.
+	var onLine func(string)
+	showProgress := !opts.Verbose
+	if showProgress {
+		onLine = func(line string) {
+			if pct, ok := parseProgress(line); ok {
+				fmt.Fprintf(os.Stderr, "\r  transcribing %3d%%", pct)
+			}
+		}
+	}
+
+	_, err := proc.Run(ctx, proc.RunOpts{Name: bin, Args: args, StreamStderr: opts.Verbose, OnStderrLine: onLine, Label: "whisper-cli"})
+	if showProgress {
+		fmt.Fprintln(os.Stderr)
+	}
+	if err != nil {
 		return Result{}, err
 	}
 
@@ -70,6 +86,23 @@ func Run(ctx context.Context, bin, wav, tmpDir string, opts Options) (Result, er
 		return Result{}, fmt.Errorf("read whisper json %s: %w", jsonPath, err)
 	}
 	return parse(data)
+}
+
+// parseProgress extracts NN from whisper-cli's
+// "whisper_print_progress_callback: progress =  NN%" stderr lines.
+func parseProgress(line string) (int, bool) {
+	const marker = "progress ="
+	i := strings.Index(line, marker)
+	if i < 0 {
+		return 0, false
+	}
+	rest := strings.TrimSpace(line[i+len(marker):])
+	rest = strings.TrimSpace(strings.TrimSuffix(rest, "%"))
+	n, err := strconv.Atoi(rest)
+	if err != nil {
+		return 0, false
+	}
+	return n, true
 }
 
 func parse(data []byte) (Result, error) {
