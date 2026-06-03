@@ -1,0 +1,39 @@
+name: Trigger Homebrew Tap Update
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'The tag to release (e.g. v1.2.3)'
+        required: true
+        type: string
+  release:
+    types: [published]
+
+jobs:
+  notify-tap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Tap Update
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.TAP_GITHUB_TOKEN }}
+          script: |
+            // Determine the tag based on the event type
+            const tag = context.eventName === 'release'
+              ? context.payload.release.tag_name
+              : context.payload.inputs.tag;
+
+            console.log(`Triggering update for tag: ${tag}`);
+
+            await github.rest.actions.createWorkflowDispatch({
+              owner: 'rursache',
+              repo: 'homebrew-tap',
+              workflow_id: 'update-formula.yml',
+              ref: 'master',
+              inputs: {
+                formula: 'vid-summary-cli',
+                tag: tag,
+                repository: context.repo.owner + '/' + context.repo.repo
+              }
+            })

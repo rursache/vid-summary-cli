@@ -1,0 +1,7 @@
+/bin/
+/dist/
+*.partial
+tmp/
+.DS_Store
+*.ggml
+*.gguf
