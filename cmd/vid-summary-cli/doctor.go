@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/rursache/vid-summary-cli/internal/config"
 	"github.com/rursache/vid-summary-cli/internal/deps"
@@ -49,13 +50,18 @@ func newDoctorCmd() *cobra.Command {
 			}
 			fmt.Fprintf(out, "  llm-model:  %s\n", llm)
 
-			fmt.Fprintln(out, "\nSummarizer backend:")
-			if b, err := summarize.New(cfg.Summarizer.Backend, cfg.Summarizer.Model); err != nil {
-				fmt.Fprintf(out, "  [miss] %v\n", err)
-			} else if err := b.Available(); err != nil {
-				fmt.Fprintf(out, "  [miss] %v\n", err)
+			fmt.Fprintln(out, "\nSummarizer backends:")
+			for _, name := range summarize.Known() {
+				if summarize.Installed(name) {
+					fmt.Fprintf(out, "  [ok]   %s\n", name)
+				} else {
+					fmt.Fprintf(out, "  [miss] %s\n", name)
+				}
+			}
+			if detected := summarize.Detect(cfg.Summarizer.Backend); detected == "" {
+				fmt.Fprintf(out, "  none installed — install one of: %s\n", strings.Join(summarize.Known(), ", "))
 			} else {
-				fmt.Fprintf(out, "  [ok]   %s CLI available\n", b.Name())
+				fmt.Fprintf(out, "  effective default: %s (configured: %s)\n", detected, cfg.Summarizer.Backend)
 			}
 
 			fmt.Fprintln(out, "\nModel cache:")

@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/rursache/vid-summary-cli/internal/config"
 	"github.com/rursache/vid-summary-cli/internal/pipeline"
+	"github.com/rursache/vid-summary-cli/internal/summarize"
 	"github.com/spf13/cobra"
 )
 
@@ -64,13 +66,26 @@ func runPipeline(cmd *cobra.Command, input string, f *rootFlags) error {
 		return err
 	}
 
+	// An explicit --backend is used as-is (and errors later if not installed).
+	// Otherwise auto-detect: prefer the configured backend, then codex/claude/gemini.
+	backend := f.backend
+	if backend == "" {
+		backend = summarize.Detect(cfg.Summarizer.Backend)
+		if backend == "" {
+			return fmt.Errorf("no summarizer CLI found in PATH. Install one of: %s", strings.Join(summarize.Known(), ", "))
+		}
+		if backend != cfg.Summarizer.Backend {
+			fmt.Fprintf(os.Stderr, "summarizer %q not found; using %q\n", cfg.Summarizer.Backend, backend)
+		}
+	}
+
 	opts := pipeline.Options{
 		Input:    input,
 		Model:    pick(f.model, cfg.Model),
 		Language: pick(f.language, cfg.Language),
 		Threads:  pickInt(f.threads, cfg.Threads),
 		BeamSize: pickInt(f.beamSize, cfg.BeamSize),
-		Backend:  pick(f.backend, cfg.Summarizer.Backend),
+		Backend:  backend,
 		LLMModel: pick(f.llmModel, cfg.Summarizer.Model),
 		Detail:   pick(f.detail, cfg.Summarizer.Detail),
 		Prompt:   cfg.Summarizer.Prompt,

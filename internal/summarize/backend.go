@@ -25,6 +25,12 @@ type Options struct {
 const reducePrompt = "The following are summaries of consecutive chunks of one transcript. " +
 	"Combine them into a single coherent summary, preserving the original prompt's intent. Return only the summary."
 
+// knownBackends is the auto-detect preference order when no explicit backend
+// is requested.
+var knownBackends = []string{"codex", "claude", "gemini"}
+
+func Known() []string { return knownBackends }
+
 func New(backend, model string) (Backend, error) {
 	switch strings.ToLower(backend) {
 	case "claude":
@@ -36,4 +42,26 @@ func New(backend, model string) (Backend, error) {
 	default:
 		return nil, fmt.Errorf("unknown summarizer backend %q (want \"claude\", \"codex\", or \"gemini\")", backend)
 	}
+}
+
+// Installed reports whether a backend's CLI is present in PATH.
+func Installed(name string) bool {
+	b, err := New(name, "")
+	return err == nil && b.Available() == nil
+}
+
+// Detect returns the first installed backend, trying preferred first and then
+// the known order. Returns "" if none are installed.
+func Detect(preferred string) string {
+	seen := map[string]bool{}
+	for _, name := range append([]string{preferred}, knownBackends...) {
+		if name == "" || seen[name] {
+			continue
+		}
+		seen[name] = true
+		if Installed(name) {
+			return name
+		}
+	}
+	return ""
 }
