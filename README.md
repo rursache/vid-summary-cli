@@ -220,6 +220,21 @@ summarizer backend, and the model cache.
 
 ---
 
+## My other tools
+
+| Tool | Description |
+|------|-------------|
+| [vid-summary-cli](https://github.com/rursache/vid-summary-cli) | Summarize videos via a yt-dlp → ffmpeg → whisper.cpp → AI pipeline |
+| [CalendarPlusPlus](https://github.com/rursache/CalendarPlusPlus) | Menu bar app to enhance the macOS Calendar experience |
+| [watchwise-cli](https://github.com/rursache/watchwise-cli) | Smart, easy and personal movie/tv show recommendations |
+| [reddit-cli](https://github.com/rursache/reddit-cli) | Allow AI Agents to easily read Reddit posts; no auth needed |
+| [bird-cli](https://github.com/rursache/bird-cli) | bird mirror |
+| [loto-cli](https://github.com/rursache/loto-cli) | CLI for Loto.ro |
+| [solo-cli](https://github.com/rursache/solo-cli) | A terminal-based user interface for SOLO.ro, an online accounting platform for Romanian freelancers (PFA) |
+| [SimFiles](https://github.com/rursache/SimFiles) | Manage files in the iOS Simulator's Files app storage |
+
+---
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
