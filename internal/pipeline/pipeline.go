@@ -21,6 +21,7 @@ type Options struct {
 	BeamSize int
 	Backend  string
 	LLMModel string
+	Detail   string
 	Prompt   string
 	Format   string // summary | summary+transcript | json
 	KeepTemp bool
@@ -111,6 +112,7 @@ func Run(ctx context.Context, cfg config.Config, opts Options) (Result, error) {
 	fmt.Fprintf(os.Stderr, "Summarizing with %s...\n", backend.Name())
 	summary, err := summarize.Summarize(ctx, backend, tr, summarize.Options{
 		Prompt:       opts.Prompt,
+		Detail:       opts.Detail,
 		MaxChars:     cfg.Chunking.MaxChars,
 		OverlapChars: cfg.Chunking.OverlapChars,
 	})

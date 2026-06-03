@@ -17,6 +17,7 @@ type Backend interface {
 
 type Options struct {
 	Prompt       string
+	Detail       string // short | medium | long
 	MaxChars     int
 	OverlapChars int
 }

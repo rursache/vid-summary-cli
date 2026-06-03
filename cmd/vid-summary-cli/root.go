@@ -16,6 +16,7 @@ type rootFlags struct {
 	beamSize int
 	backend  string
 	llmModel string
+	detail   string
 	prompt   string
 	output   string
 	format   string
@@ -46,6 +47,7 @@ func newRootCmd() *cobra.Command {
 	pf.IntVar(&f.beamSize, "beam-size", 0, "whisper beam size (0 = default 5; 1 = greedy/faster)")
 	pf.StringVar(&f.backend, "backend", "", "summarizer backend: claude | codex | gemini (default from config)")
 	pf.StringVar(&f.llmModel, "llm-model", "", "LLM model name for the summarizer CLI")
+	pf.StringVar(&f.detail, "detail", "", "summary detail level: short | medium | long (default from config)")
 	pf.StringVar(&f.prompt, "prompt", "", "path to a custom prompt template")
 	pf.StringVar(&f.output, "output", "", "write summary to file (default: stdout)")
 	pf.StringVar(&f.format, "format", "summary", "output: summary | summary+transcript | json")
@@ -70,6 +72,7 @@ func runPipeline(cmd *cobra.Command, input string, f *rootFlags) error {
 		BeamSize: pickInt(f.beamSize, cfg.BeamSize),
 		Backend:  pick(f.backend, cfg.Summarizer.Backend),
 		LLMModel: pick(f.llmModel, cfg.Summarizer.Model),
+		Detail:   pick(f.detail, cfg.Summarizer.Detail),
 		Prompt:   cfg.Summarizer.Prompt,
 		Format:   f.format,
 		KeepTemp: f.keepTemp,
@@ -82,6 +85,12 @@ func runPipeline(cmd *cobra.Command, input string, f *rootFlags) error {
 			return fmt.Errorf("read prompt template: %w", err)
 		}
 		opts.Prompt = string(data)
+	}
+
+	switch opts.Detail {
+	case "short", "medium", "long":
+	default:
+		return fmt.Errorf("invalid --detail %q (want short, medium, or long)", opts.Detail)
 	}
 
 	res, err := pipeline.Run(cmd.Context(), cfg, opts)

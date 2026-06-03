@@ -17,9 +17,12 @@ const (
 	DefaultBackend  = "codex"
 )
 
-// defaultPrompt is shared by both summarizer backends. The <TRANSCRIPTION>
-// placeholder is replaced with the (chunk of) transcript text at summary time.
-const defaultPrompt = "Read and summarize the following text by responding only with the summary itself, the text is a full transcription of a video:: <TRANSCRIPTION>"
+// defaultPrompt is shared by all summarizer backends. <DETAIL> is replaced with
+// a level-specific instruction (see --detail) and <TRANSCRIPTION> with the
+// (chunk of) transcript text at summary time.
+const defaultPrompt = "Read and summarize the following text by responding only with the summary itself. <DETAIL> The text is a full transcription of a video:: <TRANSCRIPTION>"
+
+const DefaultDetail = "medium"
 
 type Config struct {
 	Model      string           `yaml:"model"`
@@ -33,6 +36,7 @@ type Config struct {
 type SummarizerConfig struct {
 	Backend string `yaml:"backend"` // claude | codex | gemini
 	Model   string `yaml:"model"`   // optional CLI model override; empty = CLI default
+	Detail  string `yaml:"detail"`  // short | medium | long
 	Prompt  string `yaml:"prompt"`
 }
 
@@ -49,6 +53,7 @@ func Defaults() Config {
 		Summarizer: SummarizerConfig{
 			Backend: DefaultBackend,
 			Model:   "",
+			Detail:  DefaultDetail,
 			Prompt:  defaultPrompt,
 		},
 		Chunking: ChunkingConfig{
@@ -137,6 +142,9 @@ func applyFallbacks(c *Config) {
 	}
 	if c.Summarizer.Backend == "" {
 		c.Summarizer.Backend = d.Summarizer.Backend
+	}
+	if c.Summarizer.Detail == "" {
+		c.Summarizer.Detail = d.Summarizer.Detail
 	}
 	if c.Summarizer.Prompt == "" {
 		c.Summarizer.Prompt = d.Summarizer.Prompt

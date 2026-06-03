@@ -92,6 +92,7 @@ Flags:
   --threads int         whisper-cli threads (0 = whisper default)
   --beam-size int       whisper beam size (0 = default 5; 1 = greedy/faster)
   --backend string      Summarizer backend: claude | codex | gemini
+  --detail string       Summary detail level: short | medium | long (default "medium")
   --llm-model string    LLM model name for the summarizer CLI
   --prompt string       Path to a custom prompt template
   --output string       Write summary to file (default: stdout)
@@ -133,7 +134,8 @@ beam_size: 0          # 0 = whisper default (5); set 1 for greedy/faster
 summarizer:
   backend: codex      # claude | codex | gemini (uses your local CLI login, no API key)
   model: ""           # optional model override; empty = the CLI's default
-  prompt: 'Read and summarize the following text by responding only with the summary itself, the text is a full transcription of a video:: <TRANSCRIPTION>'
+  detail: medium      # short | medium | long
+  prompt: 'Read and summarize the following text by responding only with the summary itself. <DETAIL> The text is a full transcription of a video:: <TRANSCRIPTION>'
 
 chunking:
   max_chars: 12000    # per map-reduce chunk
@@ -142,10 +144,16 @@ chunking:
 
 ### Prompt template
 
-`summarizer.prompt` is shared by both backends. The `<TRANSCRIPTION>`
-placeholder is replaced with the transcript (or each chunk, during map-reduce).
-If you omit the placeholder, the transcript is appended after your prompt.
-Override per-run with `--prompt path/to/template.txt`.
+`summarizer.prompt` is shared by all backends. Two placeholders are filled at
+summary time:
+- `<TRANSCRIPTION>` — the transcript (or each chunk, during map-reduce)
+- `<DETAIL>` — a length/depth instruction chosen by `--detail`
+  (`short` | `medium` | `long`), so the model itself controls how thorough the
+  summary is
+
+If you omit a placeholder in a custom template, the corresponding content is
+prepended/appended instead. Override per-run with `--prompt path/to/template.txt`
+and `--detail`.
 
 ---
 
