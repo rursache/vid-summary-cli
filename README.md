@@ -116,7 +116,9 @@ Subcommands:
   vid-summary-cli models list
   vid-summary-cli models download <model>
   vid-summary-cli models rm <model>
-  vid-summary-cli doctor        # check deps + config + model cache
+  vid-summary-cli config         # open the config file in your editor
+  vid-summary-cli config path    # print the config file path
+  vid-summary-cli doctor         # check deps + config + model cache
   vid-summary-cli version
 ```
 

@@ -56,7 +56,7 @@ func newRootCmd() *cobra.Command {
 	pf.BoolVar(&f.keepTemp, "keep-temp", false, "do not delete temp artifacts")
 	pf.BoolVarP(&f.verbose, "verbose", "v", false, "verbose logging")
 
-	cmd.AddCommand(newModelsCmd(), newDoctorCmd(), newVersionCmd())
+	cmd.AddCommand(newModelsCmd(), newConfigCmd(), newDoctorCmd(), newVersionCmd())
 	return cmd
 }
 
