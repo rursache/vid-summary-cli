@@ -64,6 +64,17 @@ Select the backend in config (`summarizer.backend`) or with `--backend`.
 
 ## Install / build
 
+### Homebrew (recommended)
+
+```sh
+brew install rursache/tap/vid-summary-cli
+```
+
+This also pulls in `ffmpeg`, `whisper-cpp`, and `yt-dlp`. (The AI CLI — `claude`,
+`codex`, or `gemini` — is installed separately; see [Summarizer](#summarizer-pick-one).)
+
+### From source
+
 Pure Go, cross-compiles with no extra toolchain:
 
 ```sh
