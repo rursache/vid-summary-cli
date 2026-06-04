@@ -78,8 +78,8 @@ This also pulls in `ffmpeg`, `whisper-cpp`, and `yt-dlp`. (The AI CLI — `claud
 Pure Go, cross-compiles with no extra toolchain:
 
 ```sh
-make build        # -> bin/vid-summary-cli
-make install      # -> $GOBIN/vid-summary-cli
+make build        # -> bin/vid-summary-cli (+ video-summary alias)
+make install      # -> $GOBIN/vid-summary-cli (+ video-summary alias)
 make dist         # darwin-arm64, linux-amd64, linux-arm64 artifacts
 ```
 
@@ -92,6 +92,10 @@ Or directly: `go install github.com/rursache/vid-summary-cli/cmd/vid-summary-cli
 ```sh
 vid-summary-cli <url|file> [flags]
 ```
+
+> [!TIP]
+> The command is also available as `video-summary` — an alias for `vid-summary-cli`
+> that points at the same binary. Use whichever is easier to remember.
 
 By default the summary is printed to **stdout**; all progress goes to **stderr**,
 so `vid-summary-cli video.mp4 > out.txt` captures only the summary.
