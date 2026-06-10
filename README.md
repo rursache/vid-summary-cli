@@ -12,9 +12,11 @@ The tool itself does no media decoding or transcription; it orchestrates.
 - **Also supported:** Linux (x86_64 / arm64) and Windows
 
 ```
-URL        → yt-dlp (bestaudio) ─┐
-                                 ├→ ffmpeg (16kHz mono PCM) → whisper-cli (JSON) → AI summary
-local file ──────────────────────┘
+YouTube URL → yt-dlp (captions only, no media download) ──────────────→ AI summary
+                │ no captions? fall back ↓
+other URL   → yt-dlp (bestaudio) ─┐
+                                  ├→ ffmpeg (16kHz mono PCM) → whisper-cli (JSON) → AI summary
+local file  ──────────────────────┘
 ```
 
 ---
@@ -103,7 +105,7 @@ so `vid-summary-cli video.mp4 > out.txt` captures only the summary.
 ```
 Flags:
   --model string        Whisper model (default "large-v3-turbo-q8_0")
-  --language string     Source language or "auto"
+  --language string     Source language or "auto" (also selects the YouTube caption track)
   --threads int         whisper-cli threads (0 = whisper default)
   --beam-size int       whisper beam size (0 = default 5; 1 = greedy/faster)
   --backend string      Summarizer backend: claude | codex | gemini
@@ -176,13 +178,21 @@ and `--detail`.
 
 ## How it works
 
-1. **Acquire** (URL only): `yt-dlp -f bestaudio/best` downloads the audio.
+1. **Captions fast path** (YouTube only): `yt-dlp --skip-download` fetches the
+   best caption track in YouTube's `json3` format and parses it into the
+   transcript directly. Preference order: manual subtitles in the requested
+   (or original) language, auto-generated ones, auto-translated ones, then
+   English as the last caption resort. No audio download, no ffmpeg, no
+   whisper, no model download. If the video has no usable captions (or
+   YouTube rate-limits the caption endpoint), the run falls back to the
+   stages below.
+2. **Acquire** (URL only): `yt-dlp -f bestaudio/best` downloads the audio.
    Local files skip this stage.
-2. **Normalize**: `ffmpeg` resamples to 16 kHz mono signed-16 PCM WAV (mandatory
+3. **Normalize**: `ffmpeg` resamples to 16 kHz mono signed-16 PCM WAV (mandatory
    for whisper.cpp), selecting the first audio stream and dropping video.
-3. **Transcribe**: `whisper-cli` produces JSON; segments and timestamps are
+4. **Transcribe**: `whisper-cli` produces JSON; segments and timestamps are
    parsed from structured output, never scraped from stdout.
-4. **Summarize**: the transcript is sent to the chosen AI CLI. Short transcripts
+5. **Summarize**: the transcript is sent to the chosen AI CLI. Short transcripts
    are summarized in one pass; long ones use **map-reduce** (summarize each
    chunk, then summarize the summaries, recursing if needed) so the model
    context window is never exceeded.

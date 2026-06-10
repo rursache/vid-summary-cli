@@ -9,6 +9,7 @@ import (
 type Result struct {
 	Summary    string               `json:"summary"`
 	Language   string               `json:"language,omitempty"`
+	Source     string               `json:"source,omitempty"` // captions | whisper
 	Transcript string               `json:"transcript,omitempty"`
 	Segments   []transcribe.Segment `json:"segments,omitempty"`
 }
