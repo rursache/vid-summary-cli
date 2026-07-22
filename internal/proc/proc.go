@@ -1,6 +1,6 @@
 // Package proc centralizes how the tool shells out to external binaries
-// (yt-dlp, ffmpeg, whisper-cli, claude, codex): consistent stdout capture,
-// stderr handling, and error wrapping with a stderr tail.
+// (yt-dlp, ffmpeg, whisper-cli, claude, codex, gemini, grok): consistent
+// stdout capture, stderr handling, and error wrapping with a stderr tail.
 package proc
 
 import (

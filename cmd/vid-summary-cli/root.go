@@ -33,7 +33,7 @@ func newRootCmd() *cobra.Command {
 		Use:   "vid-summary-cli <url|file>",
 		Short: "Summarize a video via audio -> transcript -> AI summary",
 		Long: "vid-summary-cli turns a video URL or local media file into a concise text summary,\n" +
-			"using yt-dlp, ffmpeg and whisper.cpp for transcription and a local claude/codex CLI for the summary.",
+			"using yt-dlp, ffmpeg and whisper.cpp for transcription and a local claude/codex/gemini/grok CLI for the summary.",
 		Args:          cobra.ExactArgs(1),
 		SilenceUsage:  true,
 		SilenceErrors: true,
@@ -47,7 +47,7 @@ func newRootCmd() *cobra.Command {
 	pf.StringVar(&f.language, "language", "", "source language or \"auto\" (default from config)")
 	pf.IntVar(&f.threads, "threads", 0, "whisper-cli threads (0 = whisper default)")
 	pf.IntVar(&f.beamSize, "beam-size", 0, "whisper beam size (0 = default 5; 1 = greedy/faster)")
-	pf.StringVar(&f.backend, "backend", "", "summarizer backend: claude | codex | gemini (default from config)")
+	pf.StringVar(&f.backend, "backend", "", "summarizer backend: claude | codex | gemini | grok (default from config)")
 	pf.StringVar(&f.llmModel, "llm-model", "", "LLM model name for the summarizer CLI")
 	pf.StringVar(&f.detail, "detail", "", "summary detail level: short | medium | long (default from config)")
 	pf.StringVar(&f.prompt, "prompt", "", "path to a custom prompt template")
@@ -67,7 +67,7 @@ func runPipeline(cmd *cobra.Command, input string, f *rootFlags) error {
 	}
 
 	// An explicit --backend is used as-is (and errors later if not installed).
-	// Otherwise auto-detect: prefer the configured backend, then codex/claude/gemini.
+	// Otherwise auto-detect: prefer the configured backend, then codex/claude/gemini/grok.
 	backend := f.backend
 	if backend == "" {
 		backend = summarize.Detect(cfg.Summarizer.Backend)

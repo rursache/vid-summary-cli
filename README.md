@@ -5,7 +5,7 @@ A cross-platform CLI that summarizes videos through a
 
 `vid-summary-cli` is a single Go binary that orchestrates best-in-class external
 tools (`yt-dlp`, `ffmpeg`, `whisper.cpp`) plus a local AI CLI (`claude`, `codex`,
-or `gemini`) to turn a video — a URL or a local file — into a concise text summary.
+`gemini`, or `grok`) to turn a video — a URL or a local file — into a concise text summary.
 The tool itself does no media decoding or transcription; it orchestrates.
 
 - **Primary target:** macOS on Apple Silicon
@@ -59,6 +59,7 @@ The summary stage shells out to a local AI CLI using your existing login —
 - [`claude`](https://claude.com/claude-code) (Claude Code CLI) — run `claude login`
 - [`codex`](https://developers.openai.com/codex) (Codex CLI) — run `codex login`
 - [`gemini`](https://github.com/google-gemini/gemini-cli) (Gemini CLI) — sign in once by running `gemini`
+- [`grok`](https://grok.x.ai/) (Grok Build CLI) — run `grok login`
 
 Select the backend in config (`summarizer.backend`) or with `--backend`.
 
@@ -73,7 +74,7 @@ brew install rursache/tap/vid-summary-cli
 ```
 
 This also pulls in `ffmpeg`, `whisper-cpp`, and `yt-dlp`. (The AI CLI — `claude`,
-`codex`, or `gemini` — is installed separately; see [Summarizer](#summarizer-pick-one).)
+`codex`, `gemini`, or `grok` — is installed separately; see [Summarizer](#summarizer-pick-one).)
 
 ### From source
 
@@ -108,7 +109,7 @@ Flags:
   --language string     Source language or "auto" (also selects the YouTube caption track)
   --threads int         whisper-cli threads (0 = whisper default)
   --beam-size int       whisper beam size (0 = default 5; 1 = greedy/faster)
-  --backend string      Summarizer backend: claude | codex | gemini
+  --backend string      Summarizer backend: claude | codex | gemini | grok
   --detail string       Summary detail level: short | medium | long (default "medium")
   --llm-model string    LLM model name for the summarizer CLI
   --prompt string       Path to a custom prompt template
@@ -151,7 +152,7 @@ threads: 0            # 0 = whisper default (4 on Apple Silicon Metal)
 beam_size: 0          # 0 = whisper default (5); set 1 for greedy/faster
 
 summarizer:
-  backend: codex      # claude | codex | gemini (uses your local CLI login, no API key)
+  backend: codex      # claude | codex | gemini | grok (uses your local CLI login, no API key)
   model: ""           # optional model override; empty = the CLI's default
   detail: medium      # short | medium | long
   prompt: 'Read and summarize the following text by responding only with the summary itself. <DETAIL> The text is a full transcription of a video:: <TRANSCRIPTION>'

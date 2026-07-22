@@ -7,8 +7,9 @@ import (
 )
 
 // Backend is a single non-interactive LLM call. Implementations shell out to a
-// local CLI (claude, codex) using its existing login; no API keys are handled.
-// prompt is the fully built prompt (template with the transcript substituted).
+// local CLI (claude, codex, gemini, grok) using its existing login; no API keys
+// are handled. prompt is the fully built prompt (template with the transcript
+// substituted).
 type Backend interface {
 	Name() string
 	Available() error
@@ -27,7 +28,7 @@ const reducePrompt = "The following are summaries of consecutive chunks of one t
 
 // knownBackends is the auto-detect preference order when no explicit backend
 // is requested.
-var knownBackends = []string{"codex", "claude", "gemini"}
+var knownBackends = []string{"codex", "claude", "gemini", "grok"}
 
 func Known() []string { return knownBackends }
 
@@ -39,8 +40,10 @@ func New(backend, model string) (Backend, error) {
 		return &codexBackend{model: model}, nil
 	case "gemini":
 		return &geminiBackend{model: model}, nil
+	case "grok":
+		return &grokBackend{model: model}, nil
 	default:
-		return nil, fmt.Errorf("unknown summarizer backend %q (want \"claude\", \"codex\", or \"gemini\")", backend)
+		return nil, fmt.Errorf("unknown summarizer backend %q (want \"claude\", \"codex\", \"gemini\", or \"grok\")", backend)
 	}
 }
 

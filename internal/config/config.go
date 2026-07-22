@@ -34,7 +34,7 @@ type Config struct {
 }
 
 type SummarizerConfig struct {
-	Backend string `yaml:"backend"` // claude | codex | gemini
+	Backend string `yaml:"backend"` // claude | codex | gemini | grok
 	Model   string `yaml:"model"`   // optional CLI model override; empty = CLI default
 	Detail  string `yaml:"detail"`  // short | medium | long
 	Prompt  string `yaml:"prompt"`
@@ -163,7 +163,7 @@ func writeDefault(path string) error {
 		return err
 	}
 	header := "# vid-summary-cli configuration\n" +
-		"# summarizer.backend uses your local claude/codex CLI login; no API key is stored here.\n"
+		"# summarizer.backend uses your local claude/codex/gemini/grok CLI login; no API key is stored here.\n"
 	if err := os.WriteFile(path, append([]byte(header), data...), 0o644); err != nil {
 		return fmt.Errorf("write default config: %w", err)
 	}
